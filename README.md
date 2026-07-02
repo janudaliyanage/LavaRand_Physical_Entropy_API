@@ -7,7 +7,7 @@
 ![React](https://img.shields.io/badge/React-19-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-# What is this?
+## What is this?
 
 Cloudflare uses a wall of 100 lava lamps in their San Francisco office to generate
 physical entropy for encrypting internet traffic. LavaRand is my implementation
@@ -18,7 +18,7 @@ of the same concept — a REST API that:
 3. **Derives** cryptographic keys via SHA-256 + PBKDF2
 4. **Serves** true random values through a clean REST API
 
-# Tech Stack
+## Tech Stack
 
 | Layer    | Technology                     |
 | -------- | ------------------------------ |
@@ -28,7 +28,7 @@ of the same concept — a REST API that:
 | Database | SQLite (API key management)    |
 | Entropy  | Shannon entropy analysis       |
 
-# API Endpoints
+## API Endpoints
 
 | Method | Endpoint                               | Description                    |
 | ------ | -------------------------------------- | ------------------------------ |
@@ -41,16 +41,16 @@ of the same concept — a REST API that:
 | GET    | `/api/v1/entropy/status`               | Live entropy pool status       |
 | POST   | `/api/v1/auth/generate-key`            | Generate API key               |
 
-# Running Locally
+## Running Locally
 
-# Prerequisites
+## Prerequisites
 
 - Python 3.13+
 - Node.js 18+
 - A webcam
 - A lava lamp (or lava lamp app on your phone 🌋)
 
-# Backend Setup
+## Backend Setup
 
 ```bash
 cd backend
@@ -61,7 +61,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-# Frontend Setup
+## Frontend Setup
 
 ```bash
 cd frontend
@@ -69,7 +69,7 @@ npm install
 npm start
 ```
 
-# Environment Variables
+## Environment Variables
 
 Create `backend/.env`:
 CAMERA_INDEX=0
@@ -77,11 +77,11 @@ ENTROPY_THRESHOLD=70.0
 POOL_MAX_SIZE=1024
 FPS_TARGET=24
 
-# How It Works
+## How It Works
 
 Lava Lamp (physical chaos) --> Webcam captures 24fps --> OpenCV extracts pixel data --> Shannon Entropy Analysis --> (rejects frames below 70% quality --> SHA-256 Hash --> PBKDF2 Key Derivation --> REST API serves random values
 
-# Example Response
+## Example Response
 
 ```json
 {
