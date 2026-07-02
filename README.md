@@ -79,20 +79,7 @@ FPS_TARGET=24
 
 # How It Works
 
-Lava Lamp (physical chaos)
-↓
-Webcam captures 24fps
-↓
-OpenCV extracts pixel data
-↓
-Shannon Entropy Analysis
-(rejects frames below 70% quality)
-↓
-SHA-256 Hash
-↓
-PBKDF2 Key Derivation
-↓
-REST API serves random values
+Lava Lamp (physical chaos) --> Webcam captures 24fps --> OpenCV extracts pixel data --> Shannon Entropy Analysis --> (rejects frames below 70% quality --> SHA-256 Hash --> PBKDF2 Key Derivation --> REST API serves random values
 
 # Example Response
 
@@ -107,43 +94,16 @@ REST API serves random values
 }
 ```
 
-# Real World Use Cases
+## Real World Use Cases
 
 - **E-commerce** → OTP generation for checkout verification
 - **Auth systems** → Session tokens and password reset links
 - **Encryption** → AES-256 key generation
 - **Fair draws** → Provably random number generation
 
-# Project Structure
+## About
 
-lavarand/
-├── backend/
-│ ├── entropy/
-│ │ ├── camera.py # Webcam capture (OpenCV)
-│ │ ├── extractor.py # Shannon entropy analysis
-│ │ ├── pool.py # Thread-safe entropy pool
-│ │ └── hasher.py # SHA-256 + PBKDF2 derivation
-│ ├── api/
-│ │ ├── random.py # Random value endpoints
-│ │ ├── entropy.py # Status endpoint
-│ │ └── auth.py # API key management
-│ ├── db/
-│ │ └── database.py # SQLite (API keys + logs)
-│ ├── entropy_engine.py # Main engine (ties it all together)
-│ └── main.py # FastAPI entry point
-└── frontend/
-└── src/
-├── pages/
-│ ├── Landing.jsx
-│ ├── Playground.jsx
-│ ├── Docs.jsx
-│ └── Admin.jsx
-└── services/
-└── api.js
-
-# About
-
-Built by **J** — Cybersecurity student at SLIIT (IT24102609)
+Built by Jemoris — Cybersecurity student at SLIIT (IT24102609)
 
 Inspired by [Cloudflare's LavaRand](https://blog.cloudflare.com/lavarand-in-production-the-nitty-gritty-technical-details/)
 
