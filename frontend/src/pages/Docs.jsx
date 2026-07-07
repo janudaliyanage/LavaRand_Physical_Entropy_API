@@ -48,6 +48,7 @@ export default function Docs() {
   // Track which section is in view for sidebar highlight
   const [activeSection, setActiveSection] = React.useState('introduction');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
