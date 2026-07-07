@@ -1,17 +1,12 @@
 import threading
 import time
+import os
 from entropy import LavaLampCamera, EntropyExtractor, EntropyPool, EntropyHasher
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
 class EntropyEngine:
-    """
-    The main engine that ties camera → extractor → pool together.
-    Runs as a background service.
-    """
-
     def __init__(self):
         self.camera    = LavaLampCamera()
         self.extractor = EntropyExtractor(
@@ -22,65 +17,69 @@ class EntropyEngine:
         )
         self.hasher    = EntropyHasher()
 
-        self._running       = False
-        self._thread        = None
+        self._running        = False
+        self._thread         = None
         self.frames_analyzed = 0
         self.frames_accepted = 0
-        self.last_score     = 0.0
+        self.last_score      = 0.0
+        self.mode            = "system"  # default to system
 
     def start(self):
-        """Start the entropy engine"""
-        self.camera.start()
-        self._running = True
-        self._thread = threading.Thread(
-            target=self._engine_loop,
-            daemon=True
-        )
-        self._thread.start()
-        print("[Engine] Entropy engine started")
+        """Start entropy engine — tries camera first, falls back to system"""
+        try:
+            self.camera.start()
+            self.mode = "lava_lamp"
+            self._running = True
+            self._thread = threading.Thread(
+                target=self._engine_loop,
+                daemon=True
+            )
+            self._thread.start()
+            print("[Engine] Mode: LAVA LAMP entropy")
+        except RuntimeError:
+            self.mode = "system"
+            self._running = True
+            print("[Engine] Mode: SYSTEM entropy (no camera found)")
+            print("[Engine] Using os.urandom — cryptographically secure")
 
     def stop(self):
-        """Stop the entropy engine"""
         self._running = False
-        self.camera.stop()
+        if self.mode == "lava_lamp":
+            self.camera.stop()
         print("[Engine] Stopped")
 
     def get_entropy(self, n: int = 32) -> bytes:
-        """Draw n bytes of entropy from the pool"""
-        return self.pool.draw(n)
+        """Get entropy bytes from lava lamp or system"""
+        if self.mode == "lava_lamp":
+            return self.pool.draw(n)
+        else:
+            # os.urandom is cryptographically secure
+            return os.urandom(n)
 
     def status(self) -> dict:
-        """Return current engine status"""
         return {
             "running":         self._running,
-            "pool_level":      round(self.pool.level, 1),
-            "pool_size":       self.pool.size,
-            "last_score":      round(self.last_score, 2),
+            "mode":            self.mode,
+            "pool_level":      round(self.pool.level, 1) if self.mode == "lava_lamp" else 100.0,
+            "pool_size":       self.pool.size if self.mode == "lava_lamp" else 1024,
+            "last_score":      round(self.last_score, 2) if self.mode == "lava_lamp" else 100.0,
             "frames_analyzed": self.frames_analyzed,
             "frames_accepted": self.frames_accepted,
             "acceptance_rate": round(
                 (self.frames_accepted / max(self.frames_analyzed, 1)) * 100, 1
             ),
-            "camera_fps":      self.camera.fps,
-            "camera_ready":    self.camera.is_ready(),
+            "camera_fps":      self.camera.fps if self.mode == "lava_lamp" else 0,
+            "camera_ready":    self.camera.is_ready() if self.mode == "lava_lamp" else False,
         }
 
     def _engine_loop(self):
-        """
-        Background loop:
-        1. Get frame from camera
-        2. Extract entropy
-        3. Add to pool
-        """
         while self._running:
             try:
-                # Get latest frame
                 frame = self.camera.get_frame()
                 if frame is None:
                     time.sleep(0.05)
                     continue
 
-                # Analyze & extract entropy
                 result = self.extractor.analyze(frame)
                 self.frames_analyzed += 1
                 self.last_score = result["score"]
@@ -89,13 +88,11 @@ class EntropyEngine:
                     self.pool.add(result["entropy_bytes"])
                     self.frames_accepted += 1
 
-                # Small delay between frames
                 time.sleep(1.0 / 24)
 
             except Exception as e:
                 print(f"[Engine] Error: {e}")
                 time.sleep(1.0)
 
-
-# Global singleton — one engine for the whole app
+# Global singleton
 engine = EntropyEngine()
