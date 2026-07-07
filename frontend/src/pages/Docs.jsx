@@ -69,6 +69,7 @@ export default function Docs() {
     });
 
     return () => observer.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sidebarSections = [
