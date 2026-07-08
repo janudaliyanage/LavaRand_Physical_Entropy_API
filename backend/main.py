@@ -27,7 +27,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+        allow_origins=[
+        "http://localhost:3000",
+        "https://lava-rand-1.vercel.app",  # ← add this
+        "*"  # ← or just allow all for now
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
