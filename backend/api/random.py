@@ -1,27 +1,42 @@
 from fastapi import APIRouter, HTTPException, Query, Header
 from entropy_engine import engine
 from datetime import datetime, timezone
-from db.database import validate_api_key, log_request, increment_request_count
+from db.database import validate_api_key, log_request, increment_request_count, count_requests_last_hour
 from typing import Optional
+import os
 
 router = APIRouter()
 
+DEMO_API_KEY = os.getenv("DEMO_API_KEY")
+DEMO_RATE_LIMIT_PER_HOUR = 20
+
 def check_api_key(x_api_key: Optional[str], endpoint: str):
     if x_api_key is None:
-        return
+        raise HTTPException(
+            status_code=401,
+            detail="Missing API key. Get one at /api/v1/auth/generate-key"
+        )
     if not validate_api_key(x_api_key):
         raise HTTPException(
             status_code=401,
             detail="Invalid API key. Get one at /api/v1/auth/generate-key"
         )
+    if DEMO_API_KEY and x_api_key == DEMO_API_KEY:
+        recent = count_requests_last_hour(x_api_key)
+        if recent >= DEMO_RATE_LIMIT_PER_HOUR:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Demo key limit reached ({DEMO_RATE_LIMIT_PER_HOUR}/hour). Get your own free key at /api/v1/auth/generate-key"
+            )
     increment_request_count(x_api_key)
     log_request(x_api_key, endpoint, 200)
 
 def base_response(value, **extra):
     status = engine.status()
+    entropy_source = "lava_lamp" if status["mode"] == "lava_lamp" else "os_urandom_fallback"
     return {
         "value":          value,
-        "entropy_source": "lava_lamp",
+        "entropy_source": entropy_source,
         "entropy_score":  status["last_score"],
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "algorithm":      "SHA-256 + PBKDF2",
