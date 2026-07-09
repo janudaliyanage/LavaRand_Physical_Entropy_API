@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'lavarand.db')
 
@@ -130,3 +130,23 @@ def get_key_stats(key: str):
     row = cursor.fetchone()
     conn.close()
     return dict(row) if row else None
+def count_requests_last_hour(key: str) -> int:
+    """Count how many requests a key has made in the last 60 minutes"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    one_hour_ago = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+    cursor.execute('''
+        SELECT COUNT(*) as cnt FROM request_logs
+        WHERE api_key = ? AND timestamp >= ?
+    ''', (key, one_hour_ago))
+    row = cursor.fetchone()
+    conn.close()
+    return row["cnt"] if row else 0
+
+def key_exists(key: str) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM api_keys WHERE key = ?', (key,))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None

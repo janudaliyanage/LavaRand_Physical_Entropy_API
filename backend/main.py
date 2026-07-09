@@ -5,12 +5,22 @@ from api.random  import router as random_router
 from api.entropy import router as entropy_router
 from api.auth    import router as auth_router
 from entropy_engine import engine
-from db.database import init_db
+from db.database import init_db, key_exists, create_api_key
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("[API] Initializing database...")
     init_db()
+
+    demo_key = os.getenv("DEMO_API_KEY")
+    if demo_key and not key_exists(demo_key):
+        create_api_key(key=demo_key, name="Public Demo (rate-limited)", email=None)
+        print("[API] Seeded public demo key")
+
     print("[API] Starting entropy engine...")
     engine.start()
     print("[API] Ready to serve requests")
@@ -27,10 +37,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-        allow_origins=[
+    allow_origins=[
         "http://localhost:3000",
-        "https://lava-rand-1.vercel.app",  # ← add this
-        "*"  # ← or just allow all for now
+        "https://lava-rand-1.vercel.app",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
